@@ -1,0 +1,16 @@
+{
+  "name": "christmas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oldrich-s/christmas.git"
+  },
+  "author": "Oldrich Svec",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/oldrich-s/christmas/issues"
+  },
+  "homepage": "https://github.com/oldrich-s/christmas#readme"
+}
