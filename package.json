@@ -1,0 +1,27 @@
+{
+  "name": "christmas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oldrich-s/christmas.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/oldrich-s/christmas/issues"
+  },
+  "homepage": "https://github.com/oldrich-s/christmas#readme",
+  "dependencies": {
+    "axios": "^1.7.9",
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "node-schedule": "^2.1.1",
+    "play-sound": "^1.1.6"
+  }
+}

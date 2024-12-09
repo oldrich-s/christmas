@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas</title>
+</head>
+<body>
+    <h1>Nastavení času a rozsahu</h1>
+
+    <form id="timeForm">
+        <label for="targetTime">Zadejte čas (hh:mm):</label>
+        <input type="time" id="targetTime" required>
+        <br>
+        <label for="range">Rozsah náhodného času (minuty):</label>
+        <input type="number" id="range" min="0" required>
+        <br>
+        <button type="submit">Nastavit a Spustit</button>
+    </form>
+
+    <h2 id="countdown"></h2>
+
+    <script>
+        async function updateCountdown() {
+            try {
+                const response = await fetch('/next-execution');
+                const data = await response.json();
+                const { targetDate } = data;
+
+                if (targetDate) {
+                    const now = new Date();
+                    const executionDate = new Date(targetDate);
+                    const timeDifference = executionDate - now;
+                    
+                    if (timeDifference > 0) {
+                        const minutes = Math.floor(timeDifference / 60_000);
+                        document.getElementById('countdown').textContent = `Zbývající čas: ${minutes} minut`;
+                    } else {
+                        document.getElementById('countdown').textContent = 'Úkol byl již vykonán nebo čeká na nové nastavení.';
+                    }
+                } else {
+                    document.getElementById('countdown').textContent = 'Žádný naplánovaný úkol.';
+                }
+            } catch (error) {
+                console.error('Chyba při načítání dat:', error);
+            }
+        }
+
+        updateCountdown();
+        setInterval(updateCountdown, 10_000);
+
+        document.getElementById('timeForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const targetTime = document.getElementById('targetTime').value;
+            const range = document.getElementById('range').value;
+
+            try {
+                const response = await fetch('/set-timer', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ targetTime, range })
+                });
+
+                if (response.ok) {
+                    alert('Čas nastaven. Akce budou provedeny ve stanoveném čase.');
+                    updateCountdown();
+                } else {
+                    alert('Nastala chyba při nastavování času.');
+                }
+            } catch (error) {
+                console.error('Chyba při posílání dat na server:', error);
+            }
+        });
+    </script>
+</body>
+</html>
