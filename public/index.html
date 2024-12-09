@@ -15,10 +15,15 @@
         <label for="range">Rozsah náhodného času (minuty):</label>
         <input type="number" id="range" min="0" required>
         <br><br>
-        <button type="submit">Nastavit a Spustit</button>
+        <button type="submit">Nastavit</button>
+        <br><br>
+        <h2 id="countdown"></h2>
+        <br><br>
+        <button type="button" id="startBtn">Start</button>
+        <br><br>
+        <button type="button" id="stopBtn">Stop</button>
     </form>
 
-    <h2 id="countdown"></h2>
 
     <script>
         async function updateCountdown() {
@@ -48,6 +53,10 @@
 
         updateCountdown();
         setInterval(updateCountdown, 10_000);
+
+        document.getElementById('stopBtn').addEventListener('click', () => fetch('/stop'));
+
+        document.getElementById('startBtn').addEventListener('click', () => fetch('/start'));
 
         document.getElementById('timeForm').addEventListener('submit', async function(event) {
             event.preventDefault();
