@@ -18,13 +18,15 @@ app.post('/set-timer', (req, res) => {
     timeoutMins = Number(req.body.timeoutMins);
 
     handle = setInterval(async () => {
-        if (timeoutMins-- > 0) return
+        timeoutMins = timeoutMins - 1;
+        if (timeoutMins > 0) return
 
         timeoutMins = null;
+        clearInterval(handle);
 
-        await exec("BluetoothDevicePairing.exe pair-by-mac --mac 2c:2b:f9:8d:3f:a2 --type Bluetooth");
-        await exec('"c:/Program Files (x86)/VideoLAN/VLC/vlc.exe" hudba')
-        await fetch('http://192.168.1.254/rpc/Switch.Set?id=0&on=true');
+        await exec("BluetoothDevicePairing.exe pair-by-mac --mac 2c:2b:f9:8d:3f:a2 --type Bluetooth").catch(() => {});
+        exec('"c:/Program Files (x86)/VideoLAN/VLC/vlc.exe" hudba').catch(() => {});
+        fetch('http://192.168.1.254/rpc/Switch.Set?id=0&on=true');
     }, 60_000);
 
     res.sendStatus(200);
