@@ -1,62 +1,51 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const axios = require('axios');
-const schedule = require('node-schedule');
-const player = require('play-sound')();
+const path = require('path');
 
-function play() {
-    axios.get('http://192.168.1.254/rpc/Switch.Set?id=0&on=true');
-    audio = player.play(`./hudba/*.*`, console.log);
-}
+const exec = require('util').promisify(require('child_process').exec);
 
 const app = express();
 app.use(bodyParser.json());
 
-let job = null;
-let audio = null;
+let handle = null;
+let timeoutMins = null;
 
 app.use(express.static('public'));
 
 app.post('/set-timer', (req, res) => {
-    if (job) job.cancel();
-    if (audio) audio.kill();
+    if (handle) clearInterval(handle);
 
-    const { targetTime, range } = req.body;
-    const [hours, minutes] = targetTime.split(':').map(Number);
-    const rangeInMinutes = Number(range);
+    timeoutMins = Number(req.body.timeoutMins);
 
-    const randomOffset = Math.floor((Math.random() * 2 - 1) * rangeInMinutes);
+    handle = setInterval(async () => {
+        if (timeoutMins-- > 0) return
 
-    const targetDate = new Date();
-    targetDate.setHours(hours, minutes + randomOffset, 0, 0);
+        timeoutMins = null;
 
-    job = schedule.scheduleJob(targetDate, () => {
-        play();
-        job = null;
-    });
+        await exec("BluetoothDevicePairing.exe pair-by-mac --mac 2c:2b:f9:8d:3f:a2 --type Bluetooth");
+        await exec('"c:/Program Files (x86)/VideoLAN/VLC/vlc.exe" hudba')
+        await fetch('http://192.168.1.254/rpc/Switch.Set?id=0&on=true');
+    }, 60_000);
 
     res.sendStatus(200);
 });
 
-app.get('/next-execution', (req, res) => {
-    res.json({ targetDate: job ? job.nextInvocation() : null });
+app.get('/remaining-mins', async (req, res) => {
+    res.status(200).send({ timeoutMins });
 });
 
-app.get('/start', (req, res) => {
-    if (job) job.cancel();
-    if (audio) audio.kill();
-
-    play();
+app.get('/turn-on-lights', async (req, res) => {
+    await fetch('http://192.168.1.254/rpc/Switch.Set?id=0&on=true');
 
     res.sendStatus(200);
 });
 
-app.get('/stop', (req, res) => {
-    if (audio) audio.kill();
-    axios.get('http://192.168.1.254/rpc/Switch.Set?id=0&on=false');
+app.get('/turn-off-lights', async (req, res) => {
+    await fetch('http://192.168.1.254/rpc/Switch.Set?id=0&on=false');
+
     res.sendStatus(200);
 });
 
-app.listen(3000, () => {
-    console.log(`Server běží na portu 3000. Zapni Bluetooth audio!!!`);
+app.listen(80, () => {
+    console.log(`Server běží na portu 80.`);
 });

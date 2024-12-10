@@ -1,88 +1,67 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Christmas</title>
 </head>
+
 <body>
-    <h1>Nastavení času a rozsahu</h1>
+    <h2 id="countdown"></h2>
 
     <form id="timeForm">
-        <label for="targetTime">Zadejte čas (hh:mm):</label>
-        <input type="time" id="targetTime" required>
-        <br><br>
-        <label for="range">Rozsah náhodného času (minuty):</label>
-        <input type="number" id="range" min="0" required>
+        <label for="timeoutMins">Za jak dlouho (minuty)?</label>
+        <select id="timeoutMins" required>
+            <option>0</option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>10</option>
+            <option>20</option>
+            <option>30</option>
+            <option>40</option>
+            <option>50</option>
+            <option>60</option>
+        </select>
         <br><br>
         <button type="submit">Nastavit</button>
         <br><br>
-        <h2 id="countdown"></h2>
         <br><br>
-        <button type="button" id="startBtn">Start</button>
+        <button type="button" id="turnOnLights">Zapnout svetla</button>
         <br><br>
-        <button type="button" id="stopBtn">Stop</button>
+        <button type="button" id="turnOffLights">Vypnout svetla</button>
     </form>
 
+    <script type="module">
+        const response = await fetch('/remaining-mins');
+        const data = await response.json();
+        const { timeoutMins } = data;
 
-    <script>
-        async function updateCountdown() {
-            try {
-                const response = await fetch('/next-execution');
-                const data = await response.json();
-                const { targetDate } = data;
+        document.getElementById('countdown').textContent =
+            timeoutMins ?
+                `Zbývající čas: ${timeoutMins} minut` :
+                'Žádný naplánovaný úkol.';
 
-                if (targetDate) {
-                    const now = new Date();
-                    const executionDate = new Date(targetDate);
-                    const timeDifference = executionDate - now;
-                    
-                    if (timeDifference > 0) {
-                        const minutes = Math.floor(timeDifference / 60_000);
-                        document.getElementById('countdown').textContent = `Zbývající čas: ${minutes} minut`;
-                    } else {
-                        document.getElementById('countdown').textContent = 'Úkol byl již vykonán nebo čeká na nové nastavení.';
-                    }
-                } else {
-                    document.getElementById('countdown').textContent = 'Žádný naplánovaný úkol.';
-                }
-            } catch (error) {
-                console.error('Chyba při načítání dat:', error);
-            }
-        }
+        document.getElementById('turnOffLights').addEventListener('click', () => fetch('/turn-off-lights'));
+        document.getElementById('turnOnLights').addEventListener('click', () => fetch('/turn-on-lights'));
 
-        updateCountdown();
-        setInterval(updateCountdown, 10_000);
-
-        document.getElementById('stopBtn').addEventListener('click', () => fetch('/stop'));
-
-        document.getElementById('startBtn').addEventListener('click', () => fetch('/start'));
-
-        document.getElementById('timeForm').addEventListener('submit', async function(event) {
+        document.getElementById('timeForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
-            const targetTime = document.getElementById('targetTime').value;
-            const range = document.getElementById('range').value;
+            const timeoutMins = Number(document.getElementById('timeoutMins').value);
 
-            try {
-                const response = await fetch('/set-timer', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ targetTime, range })
-                });
+            await fetch('/set-timer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ timeoutMins })
+            });
 
-                if (response.ok) {
-                    alert('Čas nastaven. Akce budou provedeny ve stanoveném čase.');
-                    updateCountdown();
-                } else {
-                    alert('Nastala chyba při nastavování času.');
-                }
-            } catch (error) {
-                console.error('Chyba při posílání dat na server:', error);
-            }
+            location.reload();
         });
     </script>
 </body>
+
 </html>
