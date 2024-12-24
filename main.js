@@ -59,5 +59,5 @@ app.get('/turn-off-lights', async (req, res) => {
 });
 
 app.listen(80, () => {
-    console.log(`Server běží na portu 80.`);
+    console.log(`\nServer běží na portu 80. Zapni Bluetooth a vypni vypinani pc!`);
 });
